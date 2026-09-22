@@ -70,7 +70,14 @@ src-tauri/target/release/bundle/msi/
 - Linux：AppImage、DEB
 - Windows：NSIS 安装包、MSI 安装包
 
-构建完成后，可以在 GitHub Actions 对应运行记录的 Artifacts 中下载安装包。推送 `v*` 格式的标签也会触发同样的跨平台构建。
+构建完成后，可以在 GitHub Actions 对应运行记录的 Artifacts 中下载安装包。推送 `v*` 格式的标签会额外自动创建 GitHub Release，并将四种安装包作为 Release 附件发布。
+
+例如：
+
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
 
 ## 代码检查
 
