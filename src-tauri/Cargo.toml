@@ -1,6 +1,6 @@
 [package]
 name = "dualboot-switcher"
-version = "0.1.0"
+version = "0.1.1"
 description = "Safe UEFI BootNext switcher"
 authors = ["BootPilot contributors"]
 edition = "2021"
