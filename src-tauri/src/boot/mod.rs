@@ -1,6 +1,8 @@
+#[cfg(target_os = "linux")]
 pub mod linux;
 pub mod models;
 pub mod parser;
+#[cfg(target_os = "windows")]
 pub mod windows;
 
 use crate::error::{BootError, BootResult};

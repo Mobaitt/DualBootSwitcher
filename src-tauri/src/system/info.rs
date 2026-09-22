@@ -35,7 +35,7 @@ pub fn secure_boot_state() -> Option<bool> {
                 return bytes.last().map(|value| *value == 1);
             }
         }
-        None
+        return None;
     }
     #[cfg(target_os = "windows")]
     {
