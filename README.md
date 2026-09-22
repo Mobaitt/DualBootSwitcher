@@ -1,14 +1,29 @@
 # 引导序 BootPilot
 
-引导序（BootPilot）是一个基于 Rust、Tauri 2、Vue 3 和 TypeScript 的轻量 UEFI 启动项管理工具。它会自动发现当前设备的 UEFI 启动项，并允许用户安全地设置一次性 `BootNext`，或设置后立即重启。
+引导序（BootPilot）是一个基于 Rust、Tauri 2、Vue 3 和 TypeScript 的轻量 UEFI 启动项管理工具。它会自动发现当前设备的有效 UEFI 启动项，让用户安全地选择下一次启动的系统。
+
+应用名称会跟随主机语言显示：中文系统显示“引导序”，英文系统显示“BootPilot”。界面支持浅色、深色和跟随系统主题，并提供系统托盘菜单。
+
+## 功能
+
+- 只显示有效的 UEFI 启动项。
+- 设置一次性 `BootNext`，下次启动后自动恢复固件默认顺序。
+- 在明确确认后设置永久默认启动项。
+- 设置后立即重启到选中的系统。
+- 显示当前系统、BootNext 和固件默认启动顺序。
+- 支持 Windows 和 Linux，支持中文和英文界面。
+- 系统托盘支持选择下一次启动、显示、隐藏、刷新和退出。
+- 固定窗口尺寸，禁止最大化，界面默认不出现滚动条。
 
 默认模式只做三件事：读取启动项、设置 `BootNext`、重启。用户在明确确认后也可以把某个有效启动项设为永久默认；该操作会修改 `BootOrder`，但不会创建或删除 EFI 启动项，也不会修改 EFI 分区文件。
 
 ## 支持系统
 
-- Windows 11：通过 `bcdedit /enum firmware /v` 读取，使用 `bcdedit` 设置 `bootsequence`。
+- Windows 10/11：通过 `bcdedit /enum firmware /v` 读取，使用 `bcdedit` 设置 `bootsequence`。
 - Ubuntu / 其他 Linux：通过 `efibootmgr -v` 读取，使用 `efibootmgr -n XXXX` 设置 `BootNext`。
 - 需要 UEFI + GPT。Legacy BIOS 模式下不会执行 EFI 修改。
+
+Linux 下需要系统已经安装并配置 `efibootmgr`。不同发行版的权限策略可能不同，写入 NVRAM 时可能需要管理员权限或 polkit 授权。
 
 ## 环境要求
 
@@ -37,6 +52,20 @@ pnpm dev
 
 ```bash
 pnpm tauri build
+```
+
+Windows 安装包会生成在：
+
+```text
+src-tauri/target/release/bundle/nsis/
+src-tauri/target/release/bundle/msi/
+```
+
+## 代码检查
+
+```bash
+cargo test --manifest-path src-tauri/Cargo.toml
+pnpm build
 ```
 
 ## 权限
@@ -76,4 +105,4 @@ cargo test --manifest-path src-tauri/Cargo.toml
 
 ## License
 
-License 预留，发布前确定并补充许可证文件。
+本项目使用 [MIT License](LICENSE)。你可以自由使用、修改和分发本项目，但需要保留许可证和版权声明。
