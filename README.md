@@ -4,6 +4,8 @@
 
 应用名称会跟随主机语言显示：中文系统显示“引导序”，英文系统显示“BootPilot”。界面支持浅色、深色和跟随系统主题，并提供系统托盘菜单。
 
+![BootPilot 界面预览](docs/bootpilot-preview.png)
+
 ## 功能
 
 - 只显示有效的 UEFI 启动项。
