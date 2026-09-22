@@ -65,7 +65,7 @@ src-tauri/target/release/bundle/msi/
 
 ## GitHub Actions
 
-`.github/workflows/build.yml` 会在推送、Pull Request 或手动运行时自动构建两个平台：
+`.github/workflows/build.yml` 只会在推送 `v*` 格式的版本标签时运行，并自动构建两个平台：
 
 - Linux：AppImage、DEB
 - Windows：NSIS 安装包、MSI 安装包
