@@ -63,6 +63,15 @@ src-tauri/target/release/bundle/nsis/
 src-tauri/target/release/bundle/msi/
 ```
 
+## GitHub Actions
+
+`.github/workflows/build.yml` 会在推送、Pull Request 或手动运行时自动构建两个平台：
+
+- Linux：AppImage、DEB
+- Windows：NSIS 安装包、MSI 安装包
+
+构建完成后，可以在 GitHub Actions 对应运行记录的 Artifacts 中下载安装包。推送 `v*` 格式的标签也会触发同样的跨平台构建。
+
 ## 代码检查
 
 ```bash
