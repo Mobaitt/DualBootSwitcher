@@ -86,20 +86,28 @@ jobs:
       contents: write
 
     steps:
-      - name: Download Linux packages
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: BootPilot-linux
-          path: release-assets/linux
+          path: release-downloads
 
-      - name: Download Windows packages
-        uses: actions/download-artifact@v4
-        with:
-          name: BootPilot-windows
-          path: release-assets/windows
+      - name: Collect release packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets
+          find release-downloads -type f \( \
+            -name '*.AppImage' -o \
+            -name '*.deb' -o \
+            -name '*.msi' -o \
+            -name '*-setup.exe' \
+          \) -exec cp {} release-assets/ \;
+          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq 4
+          ls -lh release-assets
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: release-assets/**/*
+          fail_on_unmatched_files: true
+          files: release-assets/*
