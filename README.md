@@ -25,7 +25,7 @@
 - Ubuntu / 其他 Linux：通过 `efibootmgr -v` 读取，使用 `efibootmgr -n XXXX` 设置 `BootNext`。
 - 需要 UEFI + GPT。Legacy BIOS 模式下不会执行 EFI 修改。
 
-Linux 下需要系统已经安装并配置 `efibootmgr`。不同发行版的权限策略可能不同，写入 NVRAM 时可能需要管理员权限或 polkit 授权。
+Linux 下需要系统已经安装并配置 `efibootmgr` 和 `pkexec`。应用界面保持在当前用户的桌面会话中；修改 UEFI 启动项或重启时，会通过 polkit 请求管理员权限。
 
 ## 环境要求
 
@@ -88,7 +88,7 @@ pnpm build
 
 ## 权限
 
-GUI 默认按普通用户启动。真正写入 `BootNext` 或执行重启时，Windows 依赖管理员权限，Linux 依赖 `efibootmgr` / `systemctl` 的权限。当前 MVP 将权限失败清晰返回给界面；权限模块已经独立，为后续增加 Windows UAC helper 或 Linux polkit helper 保留位置。
+Windows 依赖系统管理员权限执行 BCD 操作；Linux 仅对修改 EFI 变量和重启的命令通过 `pkexec` 提权，避免 root GUI 与用户桌面 D-Bus 会话隔离。应用不会通过 shell 拼接命令，也不会读取或保存用户密码。
 
 ## 安全模型
 

@@ -275,6 +275,49 @@ fn parse_four_hex(value: &str) -> Option<String> {
     (value.len() == 4 && value.chars().all(|c| c.is_ascii_hexdigit())).then(|| value.to_uppercase())
 }
 
+fn clean_efibootmgr_name(value: &str) -> String {
+    let value = value.trim().trim_end_matches('/').trim();
+    let value = value.split('\t').next().unwrap_or(value).trim();
+    [" HD(", " VenHw(", " PciRoot(", " Usb(", " File("]
+        .iter()
+        .filter_map(|marker| value.find(marker))
+        .min()
+        .map(|index| value[..index].trim().to_string())
+        .unwrap_or_else(|| value.to_string())
+}
+
+fn parse_efibootmgr_entry(rest: &str) -> (String, Option<String>) {
+    let lower = rest.to_ascii_lowercase();
+
+    // efibootmgr versions differ between File(\\EFI\\...) and a plain
+    // HD(...)/\\EFI\\... device path. Support both representations.
+    if let Some(file_start) = lower.find("file(") {
+        let name = clean_efibootmgr_name(&rest[..file_start]);
+        let path_start = file_start + "file(".len();
+        let path = rest[path_start..]
+            .split(')')
+            .next()
+            .map(str::trim)
+            .filter(|path| !path.is_empty())
+            .map(ToOwned::to_owned);
+        return (name, path);
+    }
+
+    if let Some(path_start) = lower.find("\\efi\\") {
+        let suffix = &rest[path_start..];
+        let Some(path_end) = suffix.to_ascii_lowercase().find(".efi") else {
+            return (clean_efibootmgr_name(&rest[..path_start]), None);
+        };
+        let path_end = path_end + ".efi".len();
+        return (
+            clean_efibootmgr_name(&rest[..path_start]),
+            Some(suffix[..path_end].to_string()),
+        );
+    }
+
+    (clean_efibootmgr_name(rest), None)
+}
+
 pub fn valid_linux_id(id: &str) -> bool {
     id.len() == 4 && id.chars().all(|c| c.is_ascii_hexdigit())
 }
@@ -310,22 +353,7 @@ pub fn parse_efibootmgr(
         let rest = trimmed[8..].trim_start();
         let active = rest.starts_with('*');
         let rest = rest.trim_start_matches('*').trim();
-        let (name, path) = if let Some(file_start) = rest.find("File(") {
-            let name = rest[..file_start]
-                .trim()
-                .trim_end_matches('/')
-                .trim()
-                .to_string();
-            let path = rest[file_start + 5..]
-                .split(')')
-                .next()
-                .map(str::trim)
-                .filter(|p| !p.is_empty())
-                .map(ToOwned::to_owned);
-            (name, path)
-        } else {
-            (rest.to_string(), None)
-        };
+        let (name, path) = parse_efibootmgr_entry(rest);
         let path_ref = path.as_deref();
         let kind = entry_type(&name, path_ref, false);
         let invalid = path.is_none() || rest.to_lowercase().contains("unknown");
@@ -396,7 +424,38 @@ mod tests {
             entries[0].path.as_deref(),
             Some("\\EFI\\Microsoft\\Boot\\bootmgfw.efi")
         );
+        assert_eq!(entries[0].name, "Windows Boot Manager");
         assert!(entries[2].suspected_invalid);
+    }
+
+    #[test]
+    fn parses_real_efibootmgr_paths_and_filters_vendor_only_entries() {
+        let output = r#"BootCurrent: 0005
+BootOrder: 0004,0005,0000
+Boot0000* debian	VenHw(99e275e7-75a0-4b37-a2e6-c5385e6c00cb)
+Boot0004* Windows Boot Manager	HD(1,GPT,3897b4a7-10af-4f2c-9a42-b989490251bb,0x800,0x32000)/\EFI\Microsoft\Boot\bootmgfw.efi57494e444f
+Boot0005* ubuntu	HD(1,GPT,343b098d-b614-4564-9453-12cc1c7fc949,0x800,0x219800)/\EFI\ubuntu\shimx64.efi0000424f
+"#;
+        let (current, next, order, entries) = parse_efibootmgr(output).unwrap();
+
+        assert_eq!(current.as_deref(), Some("0005"));
+        assert_eq!(next, None);
+        assert_eq!(order, vec!["0004", "0005", "0000"]);
+        assert_eq!(entries[0].name, "debian");
+        assert!(entries[0].path.is_none());
+        assert!(entries[0].suspected_invalid);
+        assert_eq!(entries[1].name, "Windows Boot Manager");
+        assert_eq!(
+            entries[1].path.as_deref(),
+            Some("\\EFI\\Microsoft\\Boot\\bootmgfw.efi")
+        );
+        assert!(!entries[1].suspected_invalid);
+        assert_eq!(entries[2].name, "ubuntu");
+        assert_eq!(
+            entries[2].path.as_deref(),
+            Some("\\EFI\\ubuntu\\shimx64.efi")
+        );
+        assert!(!entries[2].suspected_invalid);
     }
 
     #[test]

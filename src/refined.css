@@ -55,3 +55,28 @@
 .theme-menu-enter-active, .theme-menu-leave-active { transition: opacity .16s, transform .16s; }
 button:focus-visible { outline: 2px solid var(--accent, #8a75e4); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* Keep the fixed desktop window balanced without exposing a scrollbar. */
+.topbar { height: 44px; }
+.notice.error { position: fixed; z-index: 25; top: 54px; left: 50%; margin: 0; transform: translateX(-50%); }
+.focus-main, .dark .focus-main { min-height: 88px; padding: 14px 16px; gap: 12px; }
+.focus-main .focus-icon { flex-basis: 40px; width: 40px; height: 40px; border-radius: 12px; }
+.focus-icon svg { width: 22px; height: 22px; }
+.focus-main h1 { font-size: 23px; }
+.focus-details { min-height: 38px; }
+.entries-section { padding-top: 6px; padding-bottom: 8px; }
+.section-heading { margin-bottom: 8px; }
+.entry-list { gap: 6px; overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.entry-list::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.entry-card, .dark .entry-card { min-height: 54px; padding: 8px 12px; gap: 10px; }
+.entry-icon { width: 32px; height: 32px; font-size: 20px; }
+
+@media (max-height: 470px) {
+  .topbar { height: 40px; }
+  .boot-focus { padding-top: 0; }
+  .focus-main, .dark .focus-main { min-height: 78px; padding: 11px 14px; }
+  .focus-details { min-height: 32px; }
+  .entries-section { padding-top: 3px; padding-bottom: 5px; }
+  .entry-card, .dark .entry-card { min-height: 48px; padding: 6px 10px; }
+  .entry-icon { width: 28px; height: 28px; font-size: 18px; }
+}
