@@ -5,11 +5,19 @@ mod privilege;
 mod system;
 mod tray;
 
+use tauri::Manager;
+
 pub fn run() {
     let _ = env_logger::builder()
         .filter_level(log::LevelFilter::Info)
         .try_init();
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
         .setup(|app| Ok(tray::initialize(app)?))
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
